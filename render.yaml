@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: mohigul-lms
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        value: admin123

@@ -1,0 +1,60 @@
+<!doctype html><html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mohigul University LMS</title>
+<style>
+:root{--p:#4f46e5;--p2:#7c3aed;--bg:#f3f4f8;--t:#1e1b3a;--m:#6b7280;--b:#e5e7eb}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Segoe UI,sans-serif;background:var(--bg);color:var(--t)}
+.login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,var(--p),var(--p2))}
+.box{background:#fff;padding:32px;border-radius:20px;width:min(380px,92vw);box-shadow:0 20px 50px #0003}
+.box h1{margin:0 0 4px;font-size:24px}.box p{color:var(--m);margin:0 0 18px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--b);border-radius:10px;font:inherit;margin-bottom:10px;background:#fff}
+button{background:var(--p);color:#fff;border:0;padding:11px 18px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
+button.g{background:#eef0ff;color:var(--p)}button.r{background:#fee2e2;color:#b91c1c;padding:6px 10px}
+#app{display:none;min-height:100vh}aside{position:fixed;inset:0 auto 0 0;width:230px;background:#1e1b3a;color:#fff;padding:20px 14px}
+aside h2{font-size:17px;margin:0 8px 20px}aside a{display:block;padding:11px 12px;border-radius:10px;cursor:pointer;color:#c7c9e8;margin-bottom:4px}
+aside a.on,aside a:hover{background:var(--p);color:#fff}#who{font-size:12px;color:#9a9cc4;margin:0 8px 14px}
+main{margin-left:230px;padding:26px}.card{background:#fff;border-radius:16px;padding:20px;margin-bottom:18px;box-shadow:0 2px 10px #0001}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.stat{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border-radius:16px;padding:20px}.stat b{font-size:34px;display:block}
+.course{cursor:pointer;border-left:5px solid var(--p)}.course:hover{transform:translateY(-2px)}
+table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:10px;border-bottom:1px solid var(--b)}th{color:var(--m);font-size:13px}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:130px}.tag{background:#eef0ff;color:var(--p);padding:3px 10px;border-radius:99px;font-size:12px}
+.m{color:var(--m);font-size:13px}h3{margin-top:0}
+@media(max-width:760px){aside{position:static;width:auto}main{margin:0;padding:14px}}
+</style></head><body>
+<div class="login" id="login"><form class="box" onsubmit="login(event)"><h1>🎓 Mohigul University</h1><p>Oʻquv boshqaruv tizimi (LMS)</p>
+<input id="u" placeholder="Login" required><input id="p" type="password" placeholder="Parol" required><button style="width:100%">Kirish</button><p id="err" style="color:#b91c1c;margin:10px 0 0"></p></form></div>
+<div id="app"><aside><h2>🎓 Mohigul LMS</h2><div id="who"></div><nav id="nav"></nav><a onclick="logout()" style="margin-top:20px">🚪 Chiqish</a></aside><main id="main"></main></div>
+<script>
+let T=localStorage.t,U;const $=s=>document.querySelector(s),R={admin:'Admin',teacher:"Oʻqituvchi",student:'Talaba'};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const api=async(p,m='GET',b)=>{const r=await fetch('/api/'+p,{method:m,headers:{'Content-Type':'application/json',Authorization:'Bearer '+T},body:b&&JSON.stringify(b)});const d=await r.json();if(!r.ok){if(r.status==401)logout();alert(d.error);throw d}return d};
+const val=id=>$('#'+id).value,opts=(a,f)=>a.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');
+const M={admin:[['stats','📊 Bosh sahifa'],['users','👥 Foydalanuvchilar'],['courses','📚 Fanlar']],teacher:[['courses','📚 Fanlarim']],student:[['courses','📚 Fanlarim'],['grades','📝 Baholarim']]};
+async function login(e){e.preventDefault();const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:val('u'),password:val('p')})}),d=await r.json();if(!r.ok)return $('#err').textContent=d.error;T=d.token;localStorage.t=T;boot()}
+function logout(){localStorage.removeItem('t');T=null;$('#app').style.display='none';$('#login').style.display='grid'}
+async function boot(){if(!T)return;try{U=await api('me')}catch{return}$('#login').style.display='none';$('#app').style.display='block';$('#who').textContent=U.name+' · '+R[U.role];
+$('#nav').innerHTML=M[U.role].map(([k,l])=>`<a id="n-${k}" onclick="go('${k}')">${l}</a>`).join('');go(M[U.role][0][0])}
+function go(k){document.querySelectorAll('aside a').forEach(a=>a.classList.toggle('on',a.id=='n-'+k));V[k]()}
+const V={
+async stats(){const s=await api('stats');$('#main').innerHTML=`<h2>Bosh sahifa</h2><div class="grid">${[['Talabalar',s.students],['Oʻqituvchilar',s.teachers],['Fanlar',s.courses],['Baholar',s.grades]].map(([a,b])=>`<div class="stat"><b>${b}</b>${a}</div>`).join('')}</div>`},
+async users(){const u=await api('users');$('#main').innerHTML=`<h2>Foydalanuvchilar</h2><div class="card"><h3>Yangi foydalanuvchi</h3><div class="row"><input id="nm" placeholder="F.I.Sh"><input id="lg" placeholder="Login"><input id="pw" placeholder="Parol"><select id="rl"><option value="student">Talaba</option><option value="teacher">Oʻqituvchi</option><option value="admin">Admin</option></select></div><button onclick="addUser()">Qoʻshish</button></div>
+<div class="card" style="overflow:auto"><table><tr><th>F.I.Sh</th><th>Login</th><th>Rol</th><th></th></tr>${u.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.username)}</td><td><span class="tag">${R[x.role]}</span></td><td><button class="r" onclick="del('users/${x.id}','users')">✕</button></td></tr>`).join('')}</table></div>`},
+async courses(){const c=await api('courses');let f='';if(U.role=='admin'){const t=(await api('users')).filter(x=>x.role=='teacher');f=`<div class="card"><h3>Yangi fan</h3><div class="row"><input id="cn" placeholder="Fan nomi"><select id="ct"><option value="">Oʻqituvchi tanlang</option>${opts(t)}</select></div><button onclick="addCourse()">Yaratish</button></div>`}
+$('#main').innerHTML=`<h2>Fanlar</h2>${f}<div class="grid">${c.map(x=>`<div class="card course" onclick="openC(${x.id})"><h3>${esc(x.name)}</h3><div class="m">👨‍🏫 ${esc(x.teacher||'—')}</div><div class="m">👥 ${x.cnt} talaba</div></div>`).join('')||'<p class="m">Hozircha fan yoʻq</p>'}</div>`},
+async grades(){const g=await api('grades');$('#main').innerHTML=`<h2>Baholarim</h2><div class="card"><table><tr><th>Fan</th><th>Topshiriq</th><th>Ball</th></tr>${g.map(x=>`<tr><td>${esc(x.course)}</td><td>${esc(x.title)}</td><td><b>${x.score}</b></td></tr>`).join('')||'<tr><td class="m">Baho yoʻq</td></tr>'}</table></div>`}};
+async function openC(id){const d=await api('courses/'+id),staff=U.role!='student';let h=`<a class="m" style="cursor:pointer" onclick="go('courses')">← Fanlar</a><h2>${esc(d.course.name)}</h2>`;
+if(U.role=='admin'){const s=(await api('users')).filter(x=>x.role=='student');h+=`<div class="card"><h3>Talabalar</h3><div class="row"><select id="es">${opts(s)}</select><button class="g" onclick="enroll(${id})">Fanga qoʻshish</button></div>${d.students.map(x=>`<div style="padding:6px 0">${esc(x.name)} <button class="r" onclick="unenroll(${id},${x.id})">✕</button></div>`).join('')}</div>`}
+if(staff){h+=`<div class="card"><h3>Baho qoʻyish</h3><div class="row"><select id="gs">${opts(d.students)}</select><input id="gt" placeholder="Topshiriq nomi"><input id="gv" type="number" placeholder="Ball"></div><button onclick="addGrade(${id})">Saqlash</button></div>
+<div class="card"><h3>E'lon / material</h3><input id="pt" placeholder="Sarlavha"><textarea id="pb" rows="3" placeholder="Matn"></textarea><button onclick="addPost(${id})">E'lon qilish</button></div>`}
+h+=`<div class="card"><h3>Baholar</h3><table>${d.grades.map(g=>`<tr>${staff?`<td>${esc(g.student)}</td>`:''}<td>${esc(g.title)}</td><td><b>${g.score}</b></td>${staff?`<td><button class="r" onclick="delGrade(${g.id},${id})">✕</button></td>`:''}</tr>`).join('')||'<tr><td class="m">Baho yoʻq</td></tr>'}</table></div>
+<div class="card"><h3>E'lonlar</h3>${d.posts.map(p=>`<div style="margin-bottom:14px"><b>${esc(p.title)}</b> <span class="m">${p.created}</span><div>${esc(p.body)}</div></div>`).join('')||'<span class="m">E\'lon yoʻq</span>'}</div>`;$('#main').innerHTML=h}
+const act=async(p,m,b,after)=>{await api(p,m,b);after()};
+const addUser=()=>act('users','POST',{name:val('nm'),username:val('lg'),password:val('pw'),role:val('rl')},V.users);
+const del=(p,v)=>confirm('Oʻchirilsinmi?')&&act(p,'DELETE',null,V[v]);
+const addCourse=()=>act('courses','POST',{name:val('cn'),teacher_id:val('ct')},V.courses);
+const enroll=id=>act('enroll','POST',{course_id:id,student_id:val('es')},()=>openC(id));
+const unenroll=(c,s)=>act('enroll','DELETE',{course_id:c,student_id:s},()=>openC(c));
+const addGrade=id=>act('grades','POST',{course_id:id,student_id:val('gs'),title:val('gt'),score:val('gv')},()=>openC(id));
+const delGrade=(g,id)=>act('grades/'+g,'DELETE',null,()=>openC(id));
+const addPost=id=>act('posts','POST',{course_id:id,title:val('pt'),body:val('pb')},()=>openC(id));
+boot();
+</script></body></html>
