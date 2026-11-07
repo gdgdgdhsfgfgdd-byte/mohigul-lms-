@@ -1,1 +1,1 @@
-{"name":"mohigul-lms","version":"1.0.0","main":"server.js","scripts":{"start":"node server.js"},"engines":{"node":">=20"},"dependencies":{"better-sqlite3":"^11.3.0","express":"^4.19.2"}}
+{"name":"mohigul-lms","version":"3.0.0","main":"server.js","scripts":{"start":"node server.js"},"engines":{"node":"22.x"},"dependencies":{"better-sqlite3":"^11.3.0","express":"^4.19.2"}}
